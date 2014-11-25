@@ -9,8 +9,8 @@
  * @link       http://example.com
  * @since      1.0.0
  *
- * @package    Plugin_Name
- * @subpackage Plugin_Name/includes
+ * @package    Ajax_List
+ * @subpackage Ajax_List/includes
  */
 
 /**
@@ -20,11 +20,11 @@
  * so that it is ready for translation.
  *
  * @since      1.0.0
- * @package    Plugin_Name
- * @subpackage Plugin_Name/includes
- * @author     Your Name <email@example.com>
+ * @package    Ajax_List
+ * @subpackage Ajax_List/includes
+ * @author     Shiyue Wang <shiyue@soixantecircuits.fr>
  */
-class Plugin_Name_i18n {
+class Ajax_List_i18n {
 
 	/**
 	 * The domain specified for this plugin.

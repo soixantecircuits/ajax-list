@@ -10,15 +10,15 @@
  *
  * @link              http://example.com
  * @since             1.0.0
- * @package           Ajax list
+ * @package           Ajax_List
  *
  * @wordpress-plugin
- * Plugin Name:       Ajax list
- * Plugin URI:        http://example.com/ajax-list-uri/
+ * Plugin Name:       Ajax List
+ * Plugin URI:        https://github.com/soixantecircuits/ajax-list
  * Description:       This is a short description of what the plugin does. It's displayed in the WordPress dashboard.
  * Version:           1.0.0
  * Author:            Shiyue Wang
- * Author URI:        http://example.com/
+ * Author URI:        http://soixantecircuits.fr
  * License:           GPL-2.0+
  * License URI:       http://www.gnu.org/licenses/gpl-2.0.txt
  * Text Domain:       ajax-list
@@ -34,22 +34,22 @@ if ( ! defined( 'WPINC' ) ) {
  * The code that runs during plugin activation.
  * This action is documented in includes/class-ajax-list-activator.php
  */
-function activate_plugin_name() {
+function activate_ajax_list() {
 	require_once plugin_dir_path( __FILE__ ) . 'includes/class-ajax-list-activator.php';
-	Plugin_Name_Activator::activate();
+	Ajax_List_Activator::activate();
 }
 
 /**
  * The code that runs during plugin deactivation.
  * This action is documented in includes/class-ajax-list-deactivator.php
  */
-function deactivate_plugin_name() {
+function deactivate_ajax_list() {
 	require_once plugin_dir_path( __FILE__ ) . 'includes/class-ajax-list-deactivator.php';
-	Plugin_Name_Deactivator::deactivate();
+	Ajax_List_Deactivator::deactivate();
 }
 
-register_activation_hook( __FILE__, 'activate_plugin_name' );
-register_deactivation_hook( __FILE__, 'deactivate_plugin_name' );
+register_activation_hook( __FILE__, 'activate_ajax_list' );
+register_deactivation_hook( __FILE__, 'deactivate_ajax_list' );
 
 /**
  * The core plugin class that is used to define internationalization,
@@ -66,10 +66,10 @@ require plugin_dir_path( __FILE__ ) . 'includes/class-ajax-list.php';
  *
  * @since    1.0.0
  */
-function run_plugin_name() {
+function run_ajax_list() {
 
-	$plugin = new Plugin_Name();
+	$plugin = new Ajax_List();
 	$plugin->run();
 
 }
-run_plugin_name();
+run_ajax_list();
