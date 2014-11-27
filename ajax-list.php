@@ -34,6 +34,7 @@ if ( ! defined( 'WPINC' ) ) {
 	die;
 }
 
+
 /*----------------------------------------------------------------------------*
  * Public-Facing Functionality
  *----------------------------------------------------------------------------*/
@@ -49,6 +50,9 @@ register_activation_hook( __FILE__, array( 'Ajax_List', 'activate' ) );
 register_deactivation_hook( __FILE__, array( 'Ajax_List', 'deactivate' ) );
 
 add_action( 'plugins_loaded', array( 'Ajax_List', 'get_instance' ) );
+
+require_once plugin_dir_path(  __FILE__  ) . 'includes/shortcodes.php';
+
 
 /*----------------------------------------------------------------------------*
  * Dashboard and Administrative Functionality

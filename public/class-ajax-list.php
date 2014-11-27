@@ -72,8 +72,8 @@ class Ajax_List {
 		add_action( 'wpmu_new_blog', array( $this, 'activate_new_site' ) );
 
 		// Load public-facing style sheet and JavaScript.
-		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_styles' ) );
-		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_scripts' ) );
+//		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_styles' ) );
+//		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_scripts' ) );
 
 		/* Define custom functionality.
 		 * Refer To http://codex.wordpress.org/Plugin_API#Hooks.2C_Actions_and_Filters
@@ -346,18 +346,18 @@ class Ajax_List {
 	}
 
 
-  static function tb_check_path($tb_shortcode_slug){
+  static function al_check_path($tb_shortcode_slug){
     $user_theme_template = "/plugins/ajax-list/templates";
-    if( file_exists( get_template_directory().$user_theme_template."/css/styles.css") ){
-      wp_enqueue_style('ajax-list-user-css', get_template_directory_uri().$user_theme_template."/css/styles.css", array(), self::VERSION );
+    if( file_exists( get_template_directory().$user_theme_template."/css/style.css") ){
+      wp_enqueue_style('ajax-list-user-css', get_template_directory_uri().$user_theme_template."/css/style.css", array(), self::VERSION );
     } else {
-      wp_enqueue_style( 'the-board-default-styles', plugins_url( 'templates/css/default.css', __FILE__ ), array(), self::VERSION );
+      wp_enqueue_style( 'ajax-list-default-styles', plugins_url( 'templates/css/public.css', __FILE__ ), array(), self::VERSION );
     }
 
-    if( file_exists( get_template_directory().$user_theme_template."/css/scripts.js") ){
-      wp_enqueue_script('ajax-list-user-js', get_template_directory_uri().$user_theme_template."/css/scripts.js", array(  ), self::VERSION);
+    if( file_exists( get_template_directory().$user_theme_template."/js/script.js") ){
+      wp_enqueue_script('ajax-list-user-js', get_template_directory_uri().$user_theme_template."/js/script.js", array(  ), self::VERSION);
     } else {
-      wp_enqueue_script( 'the-board-default-script', plugins_url( 'templates/js/default.js', __FILE__ ), array(  ), self::VERSION );
+      wp_enqueue_script( 'ajax-list-default-script', plugins_url( 'templates/js/public.js', __FILE__ ), array(  ), self::VERSION );
     }
 
     if( file_exists(get_template_directory().$user_theme_template."/".$tb_shortcode_slug.".php") ){

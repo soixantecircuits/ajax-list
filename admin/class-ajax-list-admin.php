@@ -77,10 +77,6 @@ class Ajax_List_Admin {
     $plugin_basename = plugin_basename( plugin_dir_path( realpath( dirname( __FILE__ ) ) ) . $this->plugin_slug . '.php' );
     add_filter( 'plugin_action_links_' . $plugin_basename, array( $this, 'add_action_links' ) );
 
-
-    // Ajax calls
-    add_action( 'wp_ajax_al_metabox_fieldgroup_add', array($this, 'metabox_fieldgroup_add') );
-
     /*
      * Define custom functionality.
      *
@@ -90,7 +86,11 @@ class Ajax_List_Admin {
     add_action('add_meta_boxes', array( $this, 'al_add_meta_boxes') );
     add_action('save_post', array( $this, 'al_meta_box_save'));
 
+    add_action('edit_form_top', array( $this, 'shortcode_on_the_top'));
 
+    add_filter('manage_ajax_list_posts_columns' , array( $this, 'set_ajax_list_columns'));
+
+    add_action('manage_posts_custom_column' , array( $this, 'ajax_list_columns'), 10, 2 );
 
   }
 
@@ -334,6 +334,32 @@ class Ajax_List_Admin {
       update_post_meta( $post_id, 'repeatable_fields', $new );
     elseif ( empty($new) && $old )
       delete_post_meta( $post_id, 'repeatable_fields', $old );
+  }
+
+
+  public function shortcode_on_the_top( $post ) {
+    if ($post->post_type == 'ajax_list'){
+      echo '<div id="ajax-list-shortcode-holder">';
+      echo '<h3 id="ajax-list-shortcode-title"><span>'. __('Use the shortcode below to display this member', $this->plugin_slug).'</span></h3>';
+      echo "<input type='text' id='member-shortcode'"." value='[ajax-list id=".$post->ID."]' readonly>";
+      echo '</div>';
+    }
+  }
+
+  function set_ajax_list_columns($columns) {
+    return array(
+        'title'       => __('Title', The_Board::get_instance()->get_plugin_slug()),
+        'shortcode'   => __('Shortcode', The_Board::get_instance()->get_plugin_slug()),
+    );
+  }
+
+
+  function ajax_list_columns( $column, $post_id ) {
+    switch ( $column ) {
+      case 'shortcode' :
+        echo "<input type='text' readonly value='[ajax-list id=".$post_id."]'>";
+        break;
+    }
   }
 
 }
