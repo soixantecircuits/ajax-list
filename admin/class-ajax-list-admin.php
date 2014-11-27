@@ -1,103 +1,339 @@
 <?php
 
+// THIS IS A COMMENT WITH A TEMPLATE ENTRY Ajax List
+
 /**
- * The dashboard-specific functionality of the plugin.
+ * Plugin Name.
  *
- * @link       http://example.com
- * @since      1.0.0
- *
- * @package    Ajax_List
- * @subpackage Ajax_List/admin
+ * @package   Ajax_List
+ * @author    Shiyue Wang shiyue@soixantecircuits.fr
+ * @license   GPL-2.0+
+ * @link      http://soixantecircuits.fr
+ * @copyright 2014 Shiyue Wang
  */
 
 /**
- * The dashboard-specific functionality of the plugin.
+ * Plugin class. This class should ideally be used to work with the
+ * administrative side of the WordPress site.
  *
- * Defines the plugin name, version, and two examples hooks for how to
- * enqueue the dashboard-specific stylesheet and JavaScript.
+ * If you're interested in introducing public-facing
+ * functionality, then refer to `class-ajax-list.php`
  *
- * @package    Ajax_List
- * @subpackage Ajax_List/admin
- * @author     Shiyue Wang <shiyue@soixantecircuits.fr>
+ * @package Ajax_List_Admin
+ * @author  Shiyue Wang shiyue@soixantecircuits.fr
  */
 class Ajax_List_Admin {
 
-	/**
-	 * The ID of this plugin.
-	 *
-	 * @since    1.0.0
-	 * @access   private
-	 * @var      string    $ajax_list    The ID of this plugin.
-	 */
-	private $ajax_list;
+  /**
+   * Instance of this class.
+   *
+   * @since    1.0.0
+   *
+   * @var      object
+   */
+  protected static $instance = null;
 
-	/**
-	 * The version of this plugin.
-	 *
-	 * @since    1.0.0
-	 * @access   private
-	 * @var      string    $version    The current version of this plugin.
-	 */
-	private $version;
+  /**
+   * Slug of the plugin screen.
+   *
+   * @since    1.0.0
+   *
+   * @var      string
+   */
+  protected $plugin_screen_hook_suffix = null;
 
-	/**
-	 * Initialize the class and set its properties.
-	 *
-	 * @since    1.0.0
-	 * @var      string    $ajax_list       The name of this plugin.
-	 * @var      string    $version    The version of this plugin.
-	 */
-	public function __construct( $ajax_list, $version ) {
+  /**
+   * Initialize the plugin by loading admin scripts & styles and adding a
+   * settings page and menu.
+   *
+   * @since     1.0.0
+   */
+  private function __construct() {
 
-		$this->ajax_list = $ajax_list;
-		$this->version = $version;
+    /*
+     * @TODO :
+     *
+     * - Uncomment following lines if the admin class should only be available for super admins
+     */
+    /* if( ! is_super_admin() ) {
+      return;
+    } */
 
-	}
+    /*
+     * Call $plugin_slug from public plugin class.
+     */
+    $plugin = Ajax_List::get_instance();
+    $this->plugin_slug = $plugin->get_plugin_slug();
 
-	/**
-	 * Register the stylesheets for the Dashboard.
-	 *
-	 * @since    1.0.0
-	 */
-	public function enqueue_styles() {
+    // Load admin style sheet and JavaScript.
+    add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_admin_styles' ) );
+    add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_admin_scripts' ) );
 
-		/**
-		 * This function is provided for demonstration purposes only.
-		 *
-		 * An instance of this class should be passed to the run() function
-		 * defined in Ajax_List_Admin_Loader as all of the hooks are defined
-		 * in that particular class.
-		 *
-		 * The Ajax_List_Admin_Loader will then create the relationship
-		 * between the defined hooks and the functions defined in this
-		 * class.
-		 */
+    // Add the options page and menu item.
+    add_action( 'admin_menu', array( $this, 'add_plugin_admin_menu' ) );
+    add_action( 'admin_init', array( $this, 'register_mysettings' ) );
 
-		wp_enqueue_style( $this->ajax_list, plugin_dir_url( __FILE__ ) . 'css/ajax-list-admin.css', array(), $this->version, 'all' );
+    // Add an action link pointing to the options page.
+    $plugin_basename = plugin_basename( plugin_dir_path( realpath( dirname( __FILE__ ) ) ) . $this->plugin_slug . '.php' );
+    add_filter( 'plugin_action_links_' . $plugin_basename, array( $this, 'add_action_links' ) );
 
-	}
 
-	/**
-	 * Register the JavaScript for the dashboard.
-	 *
-	 * @since    1.0.0
-	 */
-	public function enqueue_scripts() {
+    // Ajax calls
+    add_action( 'wp_ajax_al_metabox_fieldgroup_add', array($this, 'metabox_fieldgroup_add') );
 
-		/**
-		 * This function is provided for demonstration purposes only.
-		 *
-		 * An instance of this class should be passed to the run() function
-		 * defined in Ajax_List_Admin_Loader as all of the hooks are defined
-		 * in that particular class.
-		 *
-		 * The Ajax_List_Admin_Loader will then create the relationship
-		 * between the defined hooks and the functions defined in this
-		 * class.
-		 */
+    /*
+     * Define custom functionality.
+     *
+     * Read more about actions and filters:
+     * http://codex.wordpress.org/Plugin_API#Hooks.2C_Actions_and_Filters
+     */
+    add_action('add_meta_boxes', array( $this, 'al_add_meta_boxes') );
+    add_action('save_post', array( $this, 'al_meta_box_save'));
 
-		wp_enqueue_script( $this->ajax_list, plugin_dir_url( __FILE__ ) . 'js/ajax-list-admin.js', array( 'jquery' ), $this->version, false );
 
-	}
+
+  }
+
+  /**
+   * Return an instance of this class.
+   *
+   * @since     1.0.0
+   *
+   * @return    object    A single instance of this class.
+   */
+  public static function get_instance() {
+
+    /*
+     * @TODO :
+     *
+     * - Uncomment following lines if the admin class should only be available for super admins
+     */
+    /* if( ! is_super_admin() ) {
+      return;
+    } */
+
+    // If the single instance hasn't been set, set it now.
+    if ( null == self::$instance ) {
+      self::$instance = new self;
+    }
+
+    return self::$instance;
+  }
+
+  /**
+   * Register and enqueue admin-specific style sheet.
+   *
+   * @since     1.0.0
+   *
+   * @return    null    Return early if no settings page is registered.
+   */
+  public function enqueue_admin_styles() {
+
+    if ( ! isset( $this->plugin_screen_hook_suffix ) ) {
+      return;
+    }
+
+    $screen = get_current_screen();
+    if ( $this->plugin_screen_hook_suffix == $screen->id ) {
+      wp_enqueue_style( $this->plugin_slug .'-admin-styles', plugins_url( 'assets/css/admin.css', __FILE__ ), array(), Ajax_List::VERSION );
+    }
+
+  }
+
+  /**
+   * Register and enqueue admin-specific JavaScript.
+   *
+   * @since     1.0.0
+   *
+   * @return    null    Return early if no settings page is registered.
+   */
+  public function enqueue_admin_scripts() {
+
+    if ( ! isset( $this->plugin_screen_hook_suffix ) ) {
+      return;
+    }
+
+    $screen = get_current_screen();
+    if ( $this->plugin_screen_hook_suffix == $screen->id || $screen->id == 'ajax_list' ) {
+      wp_enqueue_script( $this->plugin_slug . '-admin-script', plugins_url( 'assets/js/admin.js', __FILE__ ), array( 'jquery' ), Ajax_List::VERSION );
+    }
+  }
+
+  /**
+   * Register the administration menu for this plugin into the WordPress Dashboard menu.
+   *
+   * @since    1.0.0
+   */
+  public function add_plugin_admin_menu() {
+
+    /*
+     * Add a settings page for this plugin to the Settings menu.
+     *
+     * NOTE:  Alternative menu locations are available via WordPress administration menu functions.
+     *
+     *        Administration Menus: http://codex.wordpress.org/Administration_Menus
+     *
+     * @TODO:
+     *
+     * - Change 'Page Title' to the title of your plugin admin page
+     * - Change 'Menu Text' to the text for menu item for the plugin settings page
+     * - Change 'manage_options' to the capability you see fit
+     *   For reference: http://codex.wordpress.org/Roles_and_Capabilities
+     */
+    $this->plugin_screen_hook_suffix = add_options_page(
+        __( 'Ajax List options', $this->plugin_slug ),
+        __( 'Ajax List', $this->plugin_slug ),
+        'manage_options',
+        $this->plugin_slug,
+        array( $this, 'display_plugin_admin_page' )
+    );
+
+  }
+
+  public function register_mysettings() { // whitelist options
+    register_setting( 'ajax-list-option-group', 'ajax-list_page_id' );
+//    register_setting( 'ajax-list-option-group', 'sweet_opt' );
+//    register_setting( 'ajax-list-option-group', 'test_opt' );
+  }
+
+  /**
+   * Render the settings page for this plugin.
+   *
+   * @since    1.0.0
+   */
+  public function display_plugin_admin_page() {
+    include_once( 'views/admin.php' );
+  }
+
+  /**
+   * Add settings action link to the plugins page.
+   *
+   * @since    1.0.0
+   */
+  public function add_action_links( $links ) {
+
+    return array_merge(
+        array(
+            'settings' => '<a href="' . admin_url( 'options-general.php?page=' . $this->plugin_slug ) . '">' . __( 'Settings', $this->plugin_slug ) . '</a>'
+        ),
+        $links
+    );
+
+  }
+
+  public function al_add_meta_boxes() {
+    add_meta_box( 'list-items',
+        __('List items', $this->plugin_slug),
+        array($this, 'al_list_items_meta_box_display'),
+        'ajax_list', 'normal', 'default');
+  }
+
+  function al_list_items_meta_box_display() {
+    global $post;
+    $list_items = get_post_meta($post->ID, 'repeatable_fields', true);
+    $dropdown_args = array(
+        'post_type'        => 'courses',
+        'name'             => 'item_links[]',
+        'sort_column'      => 'menu_order, post_title',
+        'echo'             => 1,
+        'id' => '0',
+        'selected' => 0
+    );
+
+    wp_nonce_field( 'al_list_items_meta_box_nonce', 'al_list_items_meta_box_nonce' );
+    ?>
+    <script type="text/javascript">
+      jQuery(document).ready(function( $ ){
+        $( '#add-row' ).on('click', function() {
+          var id_count =  parseInt($( '.empty-row.screen-reader-text .page-selector select' ).attr('id'));
+          $('.empty-row.screen-reader-text .page-selector select' ).attr('id', id_count + 1);
+          var row = $( '.empty-row.screen-reader-text' ).clone(true);
+          row.removeClass( 'empty-row screen-reader-text' );
+          row.insertBefore( '#repeatable-fieldset-one tbody>tr:last' );
+          return false;
+        });
+
+        $( '.remove-row' ).on('click', function() {
+          $(this).parents('tr').remove();
+          return false;
+        });
+      });
+    </script>
+
+    <table id="repeatable-fieldset-one" width="100%">
+      <thead>
+      <tr>
+        <th width="40%"><?php echo __('Name', $this->plugin_slug)?></th>
+        <th width="52%"><?php echo __('Link', $this->plugin_slug)?></th>
+        <th width="8%"></th>
+      </tr>
+      </thead>
+      <tbody>
+      <?php
+
+      if ( $list_items ) :
+        foreach ( $list_items as $key=>$field ) {
+          $dropdown_args['id']=$key;
+          $dropdown_args['selected']=$field['page'];
+          ?>
+          <tr>
+            <td><input type="text" class="widefat" name="name[]" value="<?php if($field['name'] != '') echo esc_attr( $field['name'] ); ?>" /></td>
+            <td class="page-selector"> <?php wp_dropdown_pages( $dropdown_args ); ?> </td>
+            <td><a class="button remove-row" href="#"><?php echo __('Remove', $this->plugin_slug)?></a></td>
+          </tr>
+        <?php
+        }
+      else :
+        // show a blank one
+        ?>
+        <tr>
+          <td><input type="text" class="widefat" name="name[]" /></td>
+          <td class="page-selector"> <?php wp_dropdown_pages( $dropdown_args ); ?> </td>
+          <td><a class="button remove-row" href="#"><?php echo __('Remove', $this->plugin_slug)?></a></td>
+        </tr>
+      <?php endif; ?>
+
+      <tr class="empty-row screen-reader-text">
+        <td><input type="text" class="widefat" name="name[]" /></td>
+        <td class="page-selector"> <?php wp_dropdown_pages( $dropdown_args ); ?> </td>
+        <td><a class="button remove-row" href="#"><?php echo __('Remove', $this->plugin_slug)?></a></td>
+      </tr>
+      </tbody>
+    </table>
+
+    <p><a id="add-row" class="button" href="#"><?php echo __('Add another', $this->plugin_slug)?></a></p>
+  <?php
+  }
+
+  public function al_meta_box_save($post_id) {
+    if ( ! isset( $_POST['al_list_items_meta_box_nonce'] ) ||
+        ! wp_verify_nonce( $_POST['al_list_items_meta_box_nonce'], 'al_list_items_meta_box_nonce' ) )
+      return;
+
+    if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE)
+      return;
+
+    if (!current_user_can('edit_post', $post_id))
+      return;
+
+    $old = get_post_meta($post_id, 'repeatable_fields', true);
+    $new = array();
+
+    $names = $_POST['name'];
+    $page_id = $_POST['item_links'];
+    $count = count( $names );
+
+    for ( $i = 0; $i < $count; $i++ ) {
+      if ( $names[$i] != '' ) :
+        $new[$i]['name'] = stripslashes( strip_tags( $names[$i] ) );
+        $new[$i]['page'] = $page_id[$i];
+      endif;
+    }
+
+    if ( !empty( $new ) && $new != $old )
+      update_post_meta( $post_id, 'repeatable_fields', $new );
+    elseif ( empty($new) && $old )
+      delete_post_meta( $post_id, 'repeatable_fields', $old );
+  }
 
 }
