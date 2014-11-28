@@ -348,15 +348,15 @@ class Ajax_List_Admin {
 
   function set_ajax_list_columns($columns) {
     return array(
-        'title'       => __('Title', The_Board::get_instance()->get_plugin_slug()),
-        'shortcode'   => __('Shortcode', The_Board::get_instance()->get_plugin_slug()),
+        'title'       => __('Title', Ajax_List::get_instance()->get_plugin_slug()),
+        'ajax_list_shortcode'   => __('Shortcode', Ajax_List::get_instance()->get_plugin_slug()),
     );
   }
 
 
   function ajax_list_columns( $column, $post_id ) {
     switch ( $column ) {
-      case 'shortcode' :
+      case 'ajax_list_shortcode' :
         echo "<input type='text' readonly value='[ajax-list id=".$post_id."]'>";
         break;
     }
