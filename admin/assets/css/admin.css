@@ -1,3 +1,9 @@
 .page-selector select{
   width: 100%;
 }
+.move-handle{
+  background-image: url(../img/icon-drag.gif);
+  background-repeat: no-repeat;
+  background-position: center center;
+  cursor: move;
+}
