@@ -134,7 +134,8 @@ class Ajax_List_Admin {
     }
 
     $screen = get_current_screen();
-    if ( $this->plugin_screen_hook_suffix == $screen->id ) {
+    if ( $this->plugin_screen_hook_suffix == $screen->id || $screen->id == 'ajax_list' ) {
+      echo (plugins_url( 'assets/css/admin.css', __FILE__ ));
       wp_enqueue_style( $this->plugin_slug .'-admin-styles', plugins_url( 'assets/css/admin.css', __FILE__ ), array(), Ajax_List::VERSION );
     }
 
