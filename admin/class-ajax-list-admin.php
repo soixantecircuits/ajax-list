@@ -285,11 +285,7 @@ class Ajax_List_Admin {
       else :
         // show a blank one
         ?>
-        <tr>
-<!--          <td><input type="text" class="widefat" name="name[]" /></td>-->
-          <td class="page-selector"> <?php wp_dropdown_pages( $dropdown_args ); ?> </td>
-          <td><a class="button remove-row" href="#"><?php echo __('Supprimer', $this->plugin_slug)?></a></td>
-        </tr>
+
       <?php endif; ?>
 
       <tr class="empty-row screen-reader-text">
