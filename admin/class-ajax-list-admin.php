@@ -134,9 +134,9 @@ class Ajax_List_Admin {
     }
 
     $screen = get_current_screen();
-    if ( $this->plugin_screen_hook_suffix == $screen->id || $screen->id == 'ajax_list' ) {
+//    if ( $this->plugin_screen_hook_suffix == $screen->id  || $screen->id == 'ajax_list' ) {
       wp_enqueue_style( $this->plugin_slug .'-admin-styles', plugins_url( 'assets/css/admin.css', __FILE__ ), array(), Ajax_List::VERSION );
-    }
+//    }
 
   }
 
@@ -223,18 +223,17 @@ class Ajax_List_Admin {
 
   public function al_add_meta_boxes() {
     add_meta_box( 'list-items',
-        __('List items', $this->plugin_slug),
+        __('Liste des cours', $this->plugin_slug),
         array($this, 'al_list_items_meta_box_display'),
-        'ajax_list', 'normal', 'default');
+        'page', 'normal', 'default');
   }
 
-  function al_list_items_meta_box_display() {
-    global $post;
+  function al_list_items_meta_box_display($post) {
     $list_items = get_post_meta($post->ID, 'repeatable_fields', true);
     $dropdown_args = array(
         'post_type'        => 'courses',
         'name'             => 'item_links[]',
-        'sort_column'      => 'order[]',
+        'sort_column'      => 'menu_order, post_title',
         'echo'             => 1,
         'id' => '0',
         'selected' => 0
@@ -242,17 +241,33 @@ class Ajax_List_Admin {
 
     wp_nonce_field( 'al_list_items_meta_box_nonce', 'al_list_items_meta_box_nonce' );
     ?>
+    <script type="text/javascript">
+      jQuery(document).ready(function( $ ){
+        $( '#add-row' ).on('click', function() {
+          var id_count =  parseInt($( '.empty-row.screen-reader-text .page-selector select' ).attr('id'));
+          $('.empty-row.screen-reader-text .page-selector select' ).attr('id', id_count + 1);
+          var row = $( '.empty-row.screen-reader-text' ).clone(true);
+          row.removeClass( 'empty-row screen-reader-text' );
+          row.insertBefore( '#repeatable-fieldset-one tbody>tr:last' );
+          return false;
+        });
+
+        $( '.remove-row' ).on('click', function() {
+          $(this).parents('tr').remove();
+          return false;
+        });
+      });
+    </script>
 
     <table id="repeatable-fieldset-one" width="100%">
       <thead>
       <tr>
-        <th width="4%"></th>
-        <th width="40%"><?php echo __('Name', $this->plugin_slug)?></th>
-        <th width="48%"><?php echo __('Link', $this->plugin_slug)?></th>
-        <th width="8%"></th>
+<!--        <th width="40%">--><?php //echo __('Name', $this->plugin_slug)?><!--</th>-->
+        <th width="80%"><?php echo __('Cours', $this->plugin_slug)?></th>
+        <th width="20%"></th>
       </tr>
       </thead>
-      <tbody id="ajax-list-container">
+      <tbody>
       <?php
 
       if ( $list_items ) :
@@ -260,38 +275,32 @@ class Ajax_List_Admin {
           $dropdown_args['id']=$key;
           $dropdown_args['selected']=$field['page'];
           ?>
-          <tr class="ajax-list-item">
-            <td class="move-handle"></td>
-            <td><input type="text" class="widefat" name="name[]" value="<?php if($field['name'] != '') echo esc_attr( $field['name'] ); ?>" /></td>
-            <td class="page-selector"> <?php wp_dropdown_pages( $dropdown_args ); ?> </td>
-            <td><a class="button remove-row" href="#"><?php echo __('Remove', $this->plugin_slug)?></a></td>
-            <input name="order[]" type="hidden" class="ordering" value="<?php if($field['order'] != '') echo esc_attr( $field['order'] ); ?>">
+          <tr>
+<!--            <td><input type="text" class="widefat" name="name[]" value="--><?php //if($field['name'] != '') echo esc_attr( $field['name'] ); ?><!--" /></td>-->
+            <td class="page-selector"> <?php wp_dropdown_pages( $dropdown_args); ?> </td>
+            <td><a class="button remove-row" href="#"><?php echo __('Supprimer', $this->plugin_slug)?></a></td>
           </tr>
         <?php
         }
       else :
         // show a blank one
         ?>
-        <tr class="ajax-list-item">
-          <td class="move-handle"></td>
-          <td><input type="text" class="widefat" name="name[]" /></td>
+        <tr>
+<!--          <td><input type="text" class="widefat" name="name[]" /></td>-->
           <td class="page-selector"> <?php wp_dropdown_pages( $dropdown_args ); ?> </td>
-          <td><a class="button remove-row" href="#"><?php echo __('Remove', $this->plugin_slug)?></a></td>
-          <input name="order[]" type="hidden" class="ordering" value="0">
+          <td><a class="button remove-row" href="#"><?php echo __('Supprimer', $this->plugin_slug)?></a></td>
         </tr>
       <?php endif; ?>
 
-      <tr class="ajax-list-item empty-row screen-reader-text">
-        <td class="move-handle"></td>
-        <td><input type="text" class="widefat" name="name[]" /></td>
+      <tr class="empty-row screen-reader-text">
+<!--        <td><input type="text" class="widefat" name="name[]" /></td>-->
         <td class="page-selector"> <?php wp_dropdown_pages( $dropdown_args ); ?> </td>
-        <td><a class="button remove-row" href="#"><?php echo __('Remove', $this->plugin_slug)?></a></td>
-        <input name="order[]" type="hidden" class="ordering">
+        <td><a class="button remove-row" href="#"><?php echo __('Supprimer', $this->plugin_slug)?></a></td>
       </tr>
       </tbody>
     </table>
 
-    <p><a id="add-row" class="button" href="#"><?php echo __('Add another', $this->plugin_slug)?></a></p>
+    <p><a id="add-row" class="button" href="#"><?php echo __('Ajouter un cours', $this->plugin_slug)?></a></p>
   <?php
   }
 
@@ -309,16 +318,14 @@ class Ajax_List_Admin {
     $old = get_post_meta($post_id, 'repeatable_fields', true);
     $new = array();
 
-    $names = $_POST['name'];
+//    $names = $_POST['name'];
     $page_id = $_POST['item_links'];
-    $order = $_POST['order'];
-    $count = count( $names );
+    $count = count( $page_id ) - 1; //Remove the empty row
 
     for ( $i = 0; $i < $count; $i++ ) {
-      if ( $names[$i] != '' ) :
-        $new[$i]['name'] = stripslashes( strip_tags( $names[$i] ) );
+      if ( $page_id[$i] != '' ) :
+//        $new[$i]['name'] = stripslashes( strip_tags( $names[$i] ) );
         $new[$i]['page'] = $page_id[$i];
-        $new[$i]['order'] = $order[$i];
       endif;
     }
 
