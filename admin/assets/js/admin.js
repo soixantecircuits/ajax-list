@@ -30,10 +30,11 @@
     }
 
     assignOrder();
-
-    $("#ajax-list-container").sortable({
-      items: '.ajax-list-item'
-    });
+    if ($("#ajax-list-container").length > 0){
+      $("#ajax-list-container").sortable({
+        items: '.ajax-list-item'
+      });
+    }
 	});
 
 }(jQuery));
